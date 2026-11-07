@@ -1,6 +1,29 @@
 import json
+import asyncio
 import pytest
 from app.agentstream import split_note, model_input, validate_classification
+
+
+@pytest.mark.parametrize('reference', ['T2-D1', 'T1-D1'])
+def test_review_questions_only_reference_observed_crops(monkeypatch, reference):
+    from app import agentstream
+
+    async def reply(message, bot_setting):
+        assert bot_setting == agentstream.QUESTION_BOT
+        assert '도장 손상' in message
+        return json.dumps({'case_id': 'case', 'status': 'review_required', 'questions': [
+            {'region_id': 'T2', 'detection_id': reference, 'question': '도장 손상으로 표시된 흔적이 보이나요?'}
+        ]}), 10
+
+    monkeypatch.setattr(agentstream, 'call_chatbot', reply)
+    evidence = [{'region_id': 'T2', 'result': 'detected',
+                 'detections': [{'detection_id': 'T2-D1', 'class_name': '도장 손상'}]}]
+    if reference == 'T1-D1':
+        with pytest.raises(agentstream.AgentStreamError):
+            asyncio.run(agentstream.review_questions('case', evidence))
+    else:
+        result = asyncio.run(agentstream.review_questions('case', evidence))
+        assert result['questions'][0]['detection_id'] == reference
 
 
 def test_preserves_full_negation_and_uncertainty_sentence():

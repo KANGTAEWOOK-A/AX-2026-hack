@@ -277,6 +277,16 @@ def test_crop_analysis_requires_full_miss_and_preserves_full_result(monkeypatch)
             assert crop.size == (44, 44)
         return {'pred': 'defect'}, {'defects': [{'class_name': '도장 손상'}]}
 
+    def unexpected_inference(*args):
+        pytest.fail('미리보기 조회가 AIStream을 호출했습니다.')
+
+    monkeypatch.setattr(main, 'infer', unexpected_inference)
+    preview = client.get(f'/api/reanalysis/{ident}').json()
+    assert preview['results'] == []
+    assert [entry['region'] for entry in preview['previews']] == [1, 2, 3, 4]
+    assert all(entry['preview_jpeg'] for entry in preview['previews'])
+    assert preview['previews'][1]['bounds'] == [36, 0, 80, 44]
+
     monkeypatch.setattr(main, 'infer', detect)
     response = client.post(f'/api/reanalyze/{ident}/2')
     assert response.status_code == 200, response.text
@@ -298,3 +308,26 @@ def test_crop_analysis_requires_full_miss_and_preserves_full_result(monkeypatch)
     assert client.post('/api/infer/' + ident).status_code == 200
     assert client.get('/api/reanalysis/' + ident).json()['results'] == []
     assert client.get('/api/queue').json()['evidence_count'] == 0
+
+
+def test_partial_evaluation_uses_same_complete_test_images_for_all_methods():
+    import json
+
+    with db() as connection:
+        for ident, truth, count in [('found', 'defect', 4), ('clean', 'normal', 4), ('incomplete', 'defect', 3)]:
+            connection.execute("""INSERT INTO items(id, filename, storage_name, uploaded_at, truth, split, pred, api_state)
+                VALUES(?,?,?,0,?,'test','normal','success')""", (ident, ident, ident, truth))
+            for region in range(1, count + 1):
+                pred = 'defect' if ident == 'found' and region == 2 else 'normal'
+                connection.execute('INSERT INTO crop_results VALUES (?,?,?,?)',
+                                   (ident, region, pred, json.dumps({'latency_ms': 10})))
+    result = client.get('/api/evaluate?k=1').json()
+    assert result['test_count'] == 3
+    partial = result['partial_comparison']
+    assert (partial['test_count'], partial['eligible_count'], partial['missed_defect_count']) == (2, 3, 1)
+    assert partial['successful_crop_calls'] == 8
+    assert partial['successful_crop_latency_ms'] == 80
+    assert all(method['selected'] == 1 and 'incomplete' not in method['ids'] for method in partial['methods'])
+    proposed = next(method for method in partial['methods'] if method['method'] == '부분 검출 우선')
+    assert proposed['ids'] == ['found']
+    assert proposed['capture_at_k'] == 1

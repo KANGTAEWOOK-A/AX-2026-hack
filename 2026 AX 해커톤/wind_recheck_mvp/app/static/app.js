@@ -3,13 +3,15 @@ const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let items=[], queueItems=[], active=null, health=null, toastTimer=null, activeDraft=null, draftBusy=false;
 let returnFocus=null, inferenceBusy=false, queueVisible=false, itemCount=0;
+let uploadBusy=false, inspectionOrder=[];
+let currentClassification=null;
 const cropRuns=new Map();
+const cropPreviews=new Map();
 let cropRunningId=null;
 function toast(msg,bad=false){const el=$('#toast');el.textContent=msg;el.classList.toggle('bad',bad);el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),4200)}
 async function api(path, options={}){const r=await fetch(path.replace(/^\//,""),options);let j;try{j=await r.json()}catch{j={detail:`HTTP ${r.status}`}}if(!r.ok)throw Error(typeof j.detail==='string'?j.detail:JSON.stringify(j.detail||j));return j}
 const tag=p=>({normal:'AI 결함 미검출',defect:'결함 검출',unknown:'결과 미해석',pending:'분석 대기',error:'분석 오류'}[p]||p);
 const reviewTag=s=>({pending:'검토 대기',completed:'검토 완료',hold:'보류'}[s]||s);
-const formatPercent=v=>v==null?'평가 불가':`${(v*100).toFixed(1)}%`;
 async function refresh(){
   try{
     const [h,s,p]=await Promise.all([api('/api/health'),api('/api/summary'),api('/api/items?limit=400')]);health=h;items=p.items;itemCount=p.count;
@@ -23,6 +25,7 @@ async function refresh(){
       : '전체에서 미검출되고 부분에서 검출된 사진을 먼저 표시합니다. 부분 분석 전 사진은 영상 품질 규칙에 따른 예비 후보입니다.';
     $('#simulationNotice').classList.toggle('hidden',s.simulation===0);
     renderItems();
+    if($('#assistantPanel').open)renderAssistant();
   }catch(e){toast(e.message,true)}
 }
 function renderItems(){
@@ -52,9 +55,43 @@ function renderItems(){
       <span class="item-tag ${esc(status)}">${esc(tag(status))}</span>
     </button>`;
   }).join('');
-  $$('#itemList .item-row').forEach(button=>button.addEventListener('click',()=>openModal(button.dataset.id)));
+  const order=shown.map(row=>row.id);
+  $$('#itemList .item-row').forEach(button=>button.addEventListener('click',()=>openModal(button.dataset.id,order)));
 }
-async function upload(file){if(!file)return;const fd=new FormData();fd.append('file',file);try{toast('이미지를 등록합니다.');const out=await api('/api/upload',{method:'POST',body:fd});await refresh();await openModal(out.id);toast('이미지가 등록됐습니다. 검토창에서 AI 분석을 실행하세요.')}catch(e){toast(e.message,true)}}
+async function upload(files){
+  if(!files.length)return;
+  if(uploadBusy){toast('이미지 등록이 진행 중입니다. 완료 후 추가하세요.',true);return}
+  const status=$('#uploadStatus'), errors=$('#uploadErrors'), errorList=errors.querySelector('ul');
+  uploadBusy=true;
+  $('#uploadBtn').disabled=true;
+  status.classList.remove('hidden');
+  errors.classList.add('hidden');
+  errors.open=false;
+  errorList.replaceChildren();
+  const uploaded=[];
+  try{
+    for(const [index,file] of files.entries()){
+      status.textContent=`이미지 등록 중 · ${index+1}/${files.length}장`;
+      const body=new FormData();
+      body.append('file',file);
+      try{
+        const result=await api('/api/upload',{method:'POST',body});
+        uploaded.push(result.id);
+      }catch(error){
+        const entry=document.createElement('li');
+        entry.textContent=`${file.name} · ${error.message}`;
+        errorList.append(entry);
+      }
+    }
+    if(uploaded.length)await refresh();
+    status.textContent=`등록 성공 ${uploaded.length}장 · 실패 ${files.length-uploaded.length}장`;
+    errors.classList.toggle('hidden',uploaded.length===files.length);
+  }finally{
+    uploadBusy=false;
+    $('#uploadBtn').disabled=false;
+  }
+  if(files.length===1&&uploaded.length&&!active)await openModal(uploaded[0]);
+}
 async function inferPending(){if(inferenceBusy)return;if(!health?.aistream_configured){toast('먼저 .env에 AISTREAM_WIND_URL을 설정하고 서버를 재시작하세요.',true);return}
   const target=items.filter(r=>r.api_state!=='success'&&r.origin!=='simulated');if(!target.length){toast('추론 대상이 없습니다.');return}
   if(!confirm(`${target.length}장의 AIStream API 추론을 시작합니다. 계속할까요?`))return;
@@ -89,14 +126,6 @@ async function generateQueue(){
     toast(error.message,true);
   }
 }
-async function train(){try{const r=await api('/api/train',{method:'POST'});toast(`학습 완료: ${r.train_count}건, 확인된 누락 결함 ${r.missed_defect_count}건`);await refresh()}catch(e){toast(e.message,true)}}
-async function evaluate(){try{const k=Number($('#budget').value)||5;const d=await api(`/api/evaluate?k=${k}`);
- if(!d.test_count){$('#evalContent').innerHTML='<div class="empty-state">분리된 TEST 집합에 모델 미검출 결과와 정답이 모두 있는 이미지가 없습니다.</div>';$('#revealWrap').classList.add('hidden');return}
- $('#evalContent').innerHTML=d.methods.map(m=>`<div class="eval-row"><div class="eval-label"><b>${esc(m.method)}</b><span>${formatPercent(m.capture_at_k)} · ${m.found}/${d.missed_defect_count}건 포착</span></div><div class="eval-bar"><div class="eval-fill ${m.method==='Wind Recheck'?'proposed':''}" style="width:${(m.capture_at_k||0)*100}%"></div></div><small>Precision@K ${formatPercent(m.precision_at_k)} · Remaining@K ${m.remaining}건</small></div>`).join('')+
- `<div class="eval-note">기존 규칙 비교 · 부분 재분석 정책은 이 평가에 포함되지 않습니다.<br>TEST ${d.test_count}장 · 실제 누락 결함 ${d.missed_defect_count}장 · 검수 예산 K=${d.k} · 누락 0건일 때 포착률은 평가 불가<br>균등 무작위 기대 포착률 ${formatPercent(d.random_expectation?.capture_at_k)} · 무작위 막대는 고정 seed 1회 결과<br>${esc(d.warning)}</div>`;
- $('#revealWrap').classList.remove('hidden');$('#revealContent').innerHTML='';
- }catch(e){toast(e.message,true)}}
-async function reveal(){try{const k=Number($('#budget').value)||5;const x=await api(`/api/reveal?k=${k}`);$('#revealContent').innerHTML=x.items.map(r=>`<div class="reveal-tile"><img src="${esc(r.thumbnail_url||r.image_url)}"/><div>${esc(r.filename)}<br><b>실제 ${r.truth==='defect'?'결함':'정상'}</b></div></div>`).join('')||'선택된 평가 이미지가 없습니다.'}catch(e){toast(e.message,true)}}
 function updateInferenceButtons(){
   $('#inferBtn').disabled=inferenceBusy;
   const button=$('#inferItemBtn');
@@ -111,8 +140,13 @@ function renderCropPanel(){
   $('#cropPanel').classList.toggle('hidden',!eligible);
   if(!eligible)return;
   const results=cropRuns.get(active.id)||[];
+  const previews=cropPreviews.get(active.id)||[];
   const running=cropRunningId===active.id;
   const detected=results.filter(result=>result.pred==='defect');
+  const hasEvidence=detected.some(result=>result.labels?.some(label=>label.trim()));
+  $('#questionPanel').classList.toggle('hidden',running||!hasEvidence);
+  $('#questionBtn').disabled=Boolean(questionRequest)||!health?.agentstream_questions_configured;
+  if(!health?.agentstream_questions_configured)$('#questionStatus').textContent='검수 질문 챗봇 연결 설정 대기';
   const failed=results.filter(result=>result.pred==='error'||result.pred==='unknown'||result.pred==='pending');
   $('#cropBtn').disabled=Boolean(cropRunningId)||!health?.aistream_configured;
   $('#cropBtn').textContent=running?'분석 중…':(results.length?'다시 분석':'4개 영역 분석');
@@ -124,7 +158,10 @@ function renderCropPanel(){
   else if(results.length)status=`부분 분석 ${results.length}/4개 저장됨 · 나머지 영역 분석이 필요합니다.`;
   if(detected.length&&failed.length&&!running)status+=` · 미확인 ${failed.length}개`;
   $('#cropStatus').textContent=status;
-  $('#cropResults').innerHTML=results.map(result=>{
+  const cards=previews.length
+    ? previews.map(preview=>({...preview,pred:'pending',...results.find(result=>result.region===preview.region)}))
+    : results;
+  $('#cropResults').innerHTML=cards.map(result=>{
     const picture=result.preview_jpeg&&/^[A-Za-z0-9+/=]+$/.test(result.preview_jpeg)
       ? `<img src="data:image/jpeg;base64,${result.preview_jpeg}" alt="T${result.region} 부분 사진">`:'';
     const detail=result.error||(result.labels||[]).join(' · ');
@@ -142,6 +179,7 @@ async function loadCrops(row){
     const data=await api(`/api/reanalysis/${encodeURIComponent(row.id)}`);
     if(active===row&&cropRunningId!==row.id){
       cropRuns.set(row.id,data.results);
+      cropPreviews.set(row.id,data.previews);
       renderCropPanel();
     }
   }catch(error){
@@ -151,6 +189,7 @@ async function loadCrops(row){
 
 async function analyzeCrops(){
   if(!active||cropRunningId||!health?.aistream_configured)return;
+  clearQuestions();
   const id=active.id;
   const results=[];
   cropRuns.set(id,results);
@@ -197,11 +236,18 @@ async function loadResponse(id){
     if(active?.id===id)$('#rawResponse').textContent='분석 응답을 불러오지 못했습니다.';
   }
 }
-async function openModal(id){
+async function openModal(id, order=[]){
   const row=items.find(item=>item.id===id)||queueItems.find(item=>item.id===id);
   if(!row)return;
-  returnFocus=document.activeElement;
+  if(!active)returnFocus=document.activeElement;
   active=row;
+  inspectionOrder=order;
+  const position=inspectionOrder.indexOf(id);
+  $('#imageNavigation').classList.toggle('hidden',position<0);
+  $('#imagePosition').textContent=position<0?'':`${position+1} / ${inspectionOrder.length}`;
+  $('#previousImage').disabled=position<=0;
+  $('#nextImage').disabled=position<0||position===inspectionOrder.length-1;
+  clearQuestions();
   activeDraft=null;
   renderDraft(row.review_classification);
   $('#draftNoteBtn').disabled=draftBusy||!health?.agentstream_configured;
@@ -212,15 +258,24 @@ async function openModal(id){
   renderDetails(row);
   $('#modalBackdrop').classList.remove('hidden');
   $('.app-shell').inert=true;
+  $('#assistantLauncher').classList.add('hidden');
   document.body.style.overflow='hidden';
   $('.modal').scrollTop=0;
   $('.modal').focus();
   await Promise.all([loadResponse(id),loadCrops(row)]);
 }
+function moveImage(direction){
+  if(!active)return;
+  const next=inspectionOrder[inspectionOrder.indexOf(active.id)+direction];
+  if(!next||!items.some(row=>row.id===next))return;
+  if($('#reviewNote').value!==(active.review_note||'')&&!window.confirm('저장하지 않은 검토 메모가 있습니다. 이동할까요?'))return;
+  return openModal(next,inspectionOrder);
+}
 function closeModal(){
   active=null;
   $('#modalBackdrop').classList.add('hidden');
   $('.app-shell').inert=false;
+  $('#assistantLauncher').classList.remove('hidden');
   document.body.style.overflow='';
   if(returnFocus?.isConnected)returnFocus.focus();
   else $('#uploadBtn').focus();
@@ -241,7 +296,7 @@ async function inferItem(){
     if(active?.id===id){
       active=items.find(item=>item.id===id)||active;
       renderDetails(active);
-      await loadResponse(id);
+      await Promise.all([loadResponse(id),loadCrops(active)]);
     }
     updateInferenceButtons();
     if(queueVisible)await generateQueue();
@@ -266,10 +321,43 @@ async function review(status){
   }
 }
 function renderDraft(result){
+ currentClassification=result;
+ if($('#assistantPanel').open)renderAssistant();
  const node=$('#draftNoteResult');node.replaceChildren();if(!result)return;
  const title=document.createElement('p');title.textContent='AgentStream 분류 · 원문 인용';node.append(title);
  result.segments.forEach(s=>{const row=document.createElement('p');const label=document.createElement('strong');label.textContent=s.labels.join(' · ')+': ';row.append(label,document.createTextNode(s.text));node.append(row)});
  const notice=document.createElement('p');notice.className='agent-notice';notice.textContent=result.notice;node.append(notice);
+}
+function renderAssistant(){
+ const current=$('#assistantCurrent'), saved=$('#assistantSaved');
+ current.classList.toggle('hidden',!active);
+ current.innerHTML=active?`<h3>현재 이미지 <span class="micro-tag">${activeDraft?'초안':'검수 메모'}</span></h3><p class="assistant-filename">${esc(active.filename)}</p>`:'';
+ if(active&&currentClassification){
+  const groups=new Map();
+  for(const segment of currentClassification.segments){
+   for(const label of segment.labels){
+    if(!groups.has(label))groups.set(label,[]);
+    groups.get(label).push(segment.text);
+   }
+  }
+  for(const [label, sentences] of groups){
+   current.insertAdjacentHTML('beforeend',`<div class="assistant-record"><b>${esc(label)}</b><ul>${sentences.map(sentence=>`<li>${esc(sentence)}</li>`).join('')}</ul></div>`);
+  }
+ }else if(active){
+  current.insertAdjacentHTML('beforeend','<p class="agent-notice">검수창에서 메모 정리를 실행하면 여기에 분류 결과가 표시됩니다.</p>');
+ }
+ const reviewed=items.map(row=>({
+  row, requests:(row.review_classification?.segments||[]).filter(segment=>segment.tags.includes('requested_action'))
+ })).filter(record=>record.requests.length).sort((a,b)=>(b.row.reviewed_at||0)-(a.row.reviewed_at||0));
+ $('#assistantScope').textContent=items.length<itemCount?`최근 등록 이미지 ${items.length}장 범위 · ${reviewed.length}건`:`${reviewed.length}건 · 카드에서 이미지 검수창을 열 수 있습니다.`;
+ saved.innerHTML=reviewed.map(({row,requests})=>`<button type="button" class="assistant-record assistant-record-link" data-id="${esc(row.id)}">
+  <img src="${esc(row.thumbnail_url||row.image_url)}" alt="" loading="lazy">
+  <span><b>${esc(row.filename)}</b><small>${esc(reviewTag(row.review_status))}</small>${requests.map(request=>`<span class="assistant-quote">${esc(request.text)}</span>`).join('')}</span>
+ </button>`).join('')||'<p class="agent-notice">추가 확인 요청으로 분류해 저장한 메모가 없습니다.</p>';
+}
+function showAssistant(){
+ renderAssistant();
+ $('#assistantPanel').showModal();
 }
 async function draftNote(){
  if(!active||draftBusy)return;
@@ -282,19 +370,76 @@ async function draftNote(){
   activeDraft=result.draft_id;renderDraft(result);toast('메모 분류 완료. 확인 후 검토 결과를 저장하세요.');
  }catch(e){toast(e.message,true)}finally{draftBusy=false;button.disabled=!health?.agentstream_configured;button.textContent=health?.agentstream_configured?'AgentStream으로 메모 정리':'AgentStream 연결 설정 대기'}
 }
+let questionRequest=false, questionRevision=0;
+function clearQuestions(){
+ questionRevision++;
+ $('#questionList').replaceChildren();
+ $('#questionStatus').textContent='';
+}
+async function askQuestions(){
+ if(!active||questionRequest||!health?.agentstream_questions_configured)return;
+ const id=active.id, revision=questionRevision;
+ const button=$('#questionBtn'), status=$('#questionStatus');
+ questionRequest=true;
+ button.disabled=true;
+ status.textContent='저장된 부분 검출 근거로 확인 질문을 생성 중입니다…';
+ $('#questionList').replaceChildren();
+ try{
+  await api('/api/review-session');
+  const result=await api(`/api/review-questions/${encodeURIComponent(id)}`,{method:'POST',headers:{'X-WR-Review':'1'}});
+  if(active?.id!==id||revision!==questionRevision)return;
+  for(const question of result.questions){
+   const entry=document.createElement('li');
+   entry.textContent=`${question.region_id} · ${question.question}`;
+   $('#questionList').append(entry);
+  }
+  status.textContent='AgentStream 확인 질문 · 해당 영역 사진을 직접 확인한 뒤 검수 결과를 기록하세요.';
+ }catch(e){
+  if(active?.id===id&&revision===questionRevision)status.textContent=e.message;
+ }finally{
+  questionRequest=false;
+  button.disabled=!health?.agentstream_questions_configured;
+ }
+}
 function setup(){
+ $('#assistantLauncher').addEventListener('click',showAssistant);
+ $('#assistantFromReview').addEventListener('click',showAssistant);
+ $('#assistantSaved').addEventListener('click',event=>{
+  const card=event.target.closest('button[data-id]');
+  if(!card)return;
+  if(active&&active.id!==card.dataset.id&&$('#reviewNote').value!==(active.review_note||'')
+     &&!window.confirm('저장하지 않은 검토 메모가 있습니다. 이동할까요?'))return;
+  $('#assistantPanel').close();
+  if(active?.id!==card.dataset.id)openModal(card.dataset.id);
+ });
  $('#itemSearch').addEventListener('input',renderItems);
  $('#itemFilter').addEventListener('change',renderItems);
  $('#inferItemBtn').addEventListener('click',inferItem);
  $('#cropBtn').addEventListener('click',analyzeCrops);
+ $('#questionBtn').addEventListener('click',askQuestions);
  $('#draftNoteBtn').addEventListener('click',draftNote);
  $('#reviewNote').addEventListener('input',()=>{activeDraft=null;renderDraft(null)});
- $$('#uploadBtn,#refreshBtn,#queueBtn,#inferBtn,#trainBtn,#evaluateBtn,#revealBtn,#exportBtn').forEach(x=>{x.addEventListener('click',()=>{
- const f={uploadBtn:()=>$('#imageInput').click(),refreshBtn:refresh,queueBtn:generateQueue,inferBtn:inferPending,trainBtn:train,evaluateBtn:evaluate,revealBtn:reveal,exportBtn:()=>location.assign('api/export')};return f[x.id]?.()})});
- $('#imageInput').addEventListener('change',e=>{upload(e.target.files[0]);e.target.value=''});
+ $$('#uploadBtn,#refreshBtn,#queueBtn,#inferBtn').forEach(x=>{x.addEventListener('click',()=>{
+ const f={uploadBtn:()=>$('#imageInput').click(),refreshBtn:refresh,queueBtn:generateQueue,inferBtn:inferPending};return f[x.id]?.()})});
+ $('#imageInput').addEventListener('change',e=>{upload([...e.target.files]);e.target.value=''});
+ const drop=$('#uploadDrop');
+ drop.addEventListener('dragover',event=>{
+   if(!Array.from(event.dataTransfer.types).includes('Files'))return;
+   event.preventDefault();
+   event.dataTransfer.dropEffect=uploadBusy?'none':'copy';
+   drop.classList.add('drag-over');
+ });
+ drop.addEventListener('dragleave',()=>drop.classList.remove('drag-over'));
+ drop.addEventListener('drop',event=>{
+   event.preventDefault();
+   drop.classList.remove('drag-over');
+   upload([...event.dataTransfer.files]);
+ });
+ $('#previousImage').addEventListener('click',()=>moveImage(-1));
+ $('#nextImage').addEventListener('click',()=>moveImage(1));
  $('#modalClose').addEventListener('click',closeModal);
  $('#modalBackdrop').addEventListener('click',event=>{if(event.target.id==='modalBackdrop')closeModal()});
- document.addEventListener('keydown',event=>{if(event.key==='Escape'&&active)closeModal()});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&active&&!$('#assistantPanel').open)closeModal()});
  $$('[data-review]').forEach(x=>x.addEventListener('click',()=>review(x.dataset.review)));
  $$('.nav-link').forEach(x=>x.addEventListener('click',()=>{$$('.nav-link').forEach(b=>b.classList.remove('active'));x.classList.add('active');$('#'+x.dataset.target).scrollIntoView({behavior:'smooth',block:'start'})}));
  refresh();

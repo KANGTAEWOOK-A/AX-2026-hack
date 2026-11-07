@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Wind Recheck | AI 재검수 의사결정</title>
-  <link rel="stylesheet" href="static/styles.css?v=3" />
-  <script src="static/app.js?v=5" defer></script>
+  <link rel="stylesheet" href="static/styles.css?v=6" />
+  <script src="static/app.js?v=10" defer></script>
 </head>
 <body>
 <div class="app-shell">
@@ -15,7 +15,6 @@
     <nav>
       <button class="nav-link active" data-target="overview"><span>▦</span> 검사 대시보드</button>
       <button class="nav-link" data-target="review"><span>◎</span> 재검수 작업함</button>
-      <button class="nav-link" data-target="evaluation"><span>▥</span> 검증 · 비교</button>
     </nav>
     <div class="sidebar-bottom">
       <div class="sidebar-caption">모델 연결</div>
@@ -33,7 +32,10 @@
         <p>풍력 블레이드 이미지를 분석하고, 미검출 사진에서<br class="desktop-break"> 다시 확인할 대상을 골라 검토 기록을 남기세요.</p>
         <div class="hero-actions">
           <button class="btn btn-primary" id="uploadBtn"><span aria-hidden="true">↑</span> 이미지 업로드</button>
+          <div class="upload-drop" id="uploadDrop">이미지 여러 장을 여기에 놓으세요</div>
         </div>
+        <p class="upload-status hidden" id="uploadStatus" role="status"></p>
+        <details class="upload-status hidden" id="uploadErrors"><summary>등록하지 못한 파일 보기</summary><ul></ul></details>
       </div>
       <svg class="hero-art" viewBox="0 0 560 320" fill="none" aria-hidden="true">
         <defs>
@@ -88,24 +90,42 @@
         <div class="queue-caption" id="queueCaption">부분 검출 근거가 있는 사진을 먼저 배정합니다.</div>
         <div class="queue-list" id="queueList"><div class="empty-state compact">검수 수량을 설정하고 목록을 생성하세요.</div></div>
         <div class="helper-box"><b>재검수 기준</b><p id="rankExplanation">부분 검출 근거를 먼저 표시합니다. 부분 분석 전 사진은 예비 후보로 구분합니다.</p></div>
+        <div class="panel-footer"><a class="text-btn" href="api/export">검수 기록 CSV 내보내기 ↗</a></div>
       </div>
-    </section>
-    <section class="evaluation-section" id="evaluation">
-      <div class="section-head"><div><span class="overline">EVIDENCE FIRST</span><h2>재검수 정책 비교</h2><p>분리된 TEST 정답에서 동일한 K로 선택 정책을 비교합니다.</p></div><div class="eval-actions"><button class="sm-btn" id="trainBtn">오류 순위 모델 학습</button><button class="sm-btn dark" id="evaluateBtn">성능 비교 실행</button></div></div>
-      <div class="eval-grid"><div class="panel eval-panel"><div class="eval-top"><span>CAPTURE @ K · 누락 결함 포착률</span><span class="micro-tag">TEST SPLIT ONLY</span></div><div id="evalContent" class="eval-content"><div class="empty-state">성능 비교를 실행하면 평가 결과가 표시됩니다.<br>작업함에서 지정한 검수 수량을 사용합니다.</div></div></div>
-        <div class="panel summary-panel"><div class="overline">VERIFICATION PRINCIPLE</div><h3>같은 수량에서<br>얼마나 포함했나요?</h3><p>무작위·영상 품질 규칙·Wind Recheck가 동일한 K개를 선택했을 때 포함되는 실제 누락 결함 수를 비교합니다. 현재 API는 confidence를 제공하지 않습니다.</p><button class="text-btn" id="exportBtn">검수 기록 CSV 내보내기 ↗</button></div>
-      </div>
-      <div class="reveal-wrap hidden" id="revealWrap"><button class="sm-btn" id="revealBtn">평가 정답 공개 (발표 시연용)</button><div id="revealContent" class="reveal-content"></div></div>
     </section>
     <footer>WIND RECHECK <span>·</span> 2026 JEONNAM GWANGJU AX CHALLENGE <span>·</span> 풍력 블레이드 검수 지원</footer>
   </main>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<button class="assistant-launcher" id="assistantLauncher" type="button" aria-label="추가 확인 요청 보기" title="추가 확인 요청 보기" aria-haspopup="dialog" aria-controls="assistantPanel">
+  <svg viewBox="0 0 24 24" width="23" height="23" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/>
+    <path d="M12 7.5v5.25" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="12" cy="16" r="1" fill="currentColor"/>
+  </svg>
+</button>
+<dialog class="assistant-panel" id="assistantPanel" aria-labelledby="assistantPanelTitle">
+  <header class="assistant-panel-header">
+    <div><span class="overline">AGENTSTREAM · 검수 기록</span><h2 id="assistantPanelTitle">AI 검수 도우미</h2></div>
+    <form method="dialog"><button class="sm-btn" aria-label="검수 도우미 닫기" autofocus>닫기</button></form>
+  </header>
+  <section id="assistantCurrent" aria-label="현재 이미지"></section>
+  <section aria-labelledby="assistantSavedTitle">
+    <h3 id="assistantSavedTitle">저장된 추가 확인 요청</h3>
+    <p class="agent-notice" id="assistantScope"></p>
+    <div id="assistantSaved"></div>
+  </section>
+</dialog>
 <div class="modal-backdrop hidden" id="modalBackdrop">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
     <button class="modal-close" id="modalClose" aria-label="검토창 닫기">×</button>
     <span class="overline">IMAGE REVIEW</span>
     <h2 id="modalTitle">이미지 검토</h2>
+    <nav class="image-navigation hidden" id="imageNavigation" aria-label="검사 목록 이미지 이동">
+      <button class="sm-btn" id="previousImage" type="button">← 이전 이미지</button>
+      <span id="imagePosition" aria-live="polite"></span>
+      <button class="sm-btn" id="nextImage" type="button">다음 이미지 →</button>
+    </nav>
     <div class="inspection-grid">
       <section class="inspection-evidence" aria-label="AIStream 분석 근거">
         <div class="modal-image"><img id="modalImage" alt="전체 블레이드 사진"></div>
@@ -116,9 +136,14 @@
             <div><span class="overline">AISTREAM / SECOND LOOK</span><h3>부분 재분석</h3></div>
             <button class="sm-btn dark" id="cropBtn" type="button">4개 영역 분석</button>
           </div>
-          <p>서버가 같은 사진을 겹치는 4개 영역으로 잘라 분석합니다.</p>
+          <p>아래 4개 영역을 미리 확인하고, 버튼을 눌러 AIStream 분석을 시작하세요.</p>
           <p class="crop-status" id="cropStatus" role="status">부분 분석을 시작하세요.</p>
           <div class="crop-grid" id="cropResults"></div>
+          <div id="questionPanel" class="hidden">
+            <button class="sm-btn" id="questionBtn" type="button">AgentStream 검수 질문 생성</button>
+            <p class="agent-notice" id="questionStatus" role="status"></p>
+            <ul id="questionList" aria-live="polite"></ul>
+          </div>
         </div>
         <details><summary>모델 응답 자세히 보기</summary><div class="raw-response" id="rawResponse"></div></details>
       </section>
@@ -130,6 +155,7 @@
         <textarea id="reviewNote" rows="4" maxlength="1000" placeholder="예: 표면이 반사되어 판독이 어렵습니다. 다른 각도에서 재촬영이 필요합니다."></textarea>
         <div class="agent-assist">
           <button class="btn btn-secondary" id="draftNoteBtn" type="button">AgentStream으로 메모 정리</button>
+          <button class="sm-btn" id="assistantFromReview" type="button" aria-haspopup="dialog" aria-controls="assistantPanel">정리한 메모 모아보기</button>
           <p class="agent-notice">메모를 AgentStream에 보내 관찰·불확실성·추가 확인 요청·담당자 언급으로 분류합니다. 내용이 플랫폼에 보관될 수 있습니다.</p>
           <div id="draftNoteResult" aria-live="polite"></div>
         </div>
@@ -142,5 +168,5 @@
     </div>
   </div>
 </div>
-<input type="file" id="imageInput" accept="image/*" class="hidden" />
+<input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
 </body></html>

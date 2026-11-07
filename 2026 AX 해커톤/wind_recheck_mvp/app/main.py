@@ -197,6 +197,7 @@ def home():
 def health():
     return {'ok': True, 'aistream_configured': bool(os.getenv('AISTREAM_WIND_URL')),
             'agentstream_configured': agentstream.configured(),
+            'agentstream_questions_configured': agentstream.configured(agentstream.QUESTION_BOT),
             'ranker_trained': MODEL.exists(), 'test_data': sum(r['split'] == 'test' for r in rows()),
             'api_mode': os.getenv('AISTREAM_REQUEST_MODE', 'multipart'),
             'notice': '실제 성능 검증에는 제공 데이터·정답 라벨과 AIStream 실제 응답이 필요합니다.'}
@@ -362,13 +363,43 @@ def store_crop(item_id, revision, region, result):
             raise HTTPException(409, '전체 분석 결과가 변경됐습니다. 검토창을 다시 열어 주세요.')
 
 
+def crop_bounds(width: int, height: int, region: int):
+    if min(width, height) < 2:
+        raise ValueError('이미지가 너무 작아 부분 분석을 할 수 없습니다.')
+    # The quadrants overlap to retain features along the seams.
+    left, right = (0, (width * 55 + 99) // 100) if region % 2 else (width * 45 // 100, width)
+    top, bottom = (0, (height * 55 + 99) // 100) if region <= 2 else (height * 45 // 100, height)
+    return left, top, right, bottom
+
+
+def crop_preview(image):
+    image.thumbnail((480, 320))
+    preview = io.BytesIO()
+    image.convert('RGB').save(preview, 'JPEG', quality=76)
+    return base64.b64encode(preview.getvalue()).decode('ascii')
+
+
 @app.get('/api/reanalysis/{item_id}')
 def read_crop_results(item_id: str):
     with db() as c:
-        if not c.execute('SELECT 1 FROM items WHERE id=?', (item_id,)).fetchone():
+        item = c.execute('SELECT storage_name, origin, pred, api_state FROM items WHERE id=?',
+                         (item_id,)).fetchone()
+        if not item:
             raise HTTPException(404, '이미지 없음')
-        results = c.execute('SELECT result FROM crop_results WHERE item_id=? ORDER BY region', (item_id,))
-        return {'results': [json.loads(row['result']) for row in results]}
+        rows = c.execute('SELECT result FROM crop_results WHERE item_id=? ORDER BY region', (item_id,))
+        results = [json.loads(row['result']) for row in rows]
+    previews = []
+    if item['origin'] != 'simulated' and item['pred'] == 'normal' and item['api_state'] == 'success':
+        saved = {result['region']: result['preview_jpeg'] for result in results if result.get('preview_jpeg')}
+        try:
+            with Image.open(UPLOADS / item['storage_name']) as image:
+                for region in range(1, 5):
+                    bounds = crop_bounds(*image.size, region)
+                    preview = saved.get(region) or crop_preview(image.crop(bounds))
+                    previews.append({'region': region, 'bounds': bounds, 'preview_jpeg': preview})
+        except (ValueError, OSError):
+            raise HTTPException(422, '부분 미리보기를 만들 수 없습니다.') from None
+    return {'results': results, 'previews': previews}
 
 
 @app.post('/api/reanalyze/{item_id}/{region}')
@@ -389,20 +420,14 @@ def reanalyze_region(item_id: str, region: int):
         try:
             with Image.open(UPLOADS / row['storage_name']) as image:
                 width, height = image.size
-                if min(width, height) < 2:
-                    raise ValueError('이미지가 너무 작아 부분 분석을 할 수 없습니다.')
-                # The quadrants overlap to retain features along the seams.
-                left, right = (0, (width * 55 + 99) // 100) if region % 2 else (width * 45 // 100, width)
-                top, bottom = (0, (height * 55 + 99) // 100) if region <= 2 else (height * 45 // 100, height)
-                crop = image.crop((left, top, right, bottom)).convert('RGB')
+                bounds = crop_bounds(width, height, region)
+                crop = image.crop(bounds).convert('RGB')
             payload = io.BytesIO()
             crop.save(payload, 'JPEG', quality=90)
             started = time.monotonic()
             parsed, raw = infer(payload.getvalue(), f'{item_id}-T{region}.jpg')
             elapsed = round((time.monotonic() - started) * 1000)
-            crop.thumbnail((480, 320))
-            preview = io.BytesIO()
-            crop.save(preview, 'JPEG', quality=76)
+            preview = crop_preview(crop)
         except httpx.TimeoutException:
             message = '부분 분석 응답 대기시간을 초과했습니다.'
             store_crop(item_id, revision, region, {'region': region, 'pred': 'error', 'error': message})
@@ -414,9 +439,9 @@ def reanalyze_region(item_id: str, region: int):
         defects = raw.get('defects') if isinstance(raw, dict) else None
         labels = [d['class_name'] for d in defects
                   if isinstance(d, dict) and isinstance(d.get('class_name'), str)] if isinstance(defects, list) else []
-        result = {'region': region, 'bounds': [left, top, right, bottom], 'source_size': [width, height],
+        result = {'region': region, 'bounds': bounds, 'source_size': [width, height],
                   'pred': parsed['pred'], 'labels': list(dict.fromkeys(labels)), 'latency_ms': elapsed,
-                  'preview_jpeg': base64.b64encode(preview.getvalue()).decode('ascii')}
+                  'preview_jpeg': preview}
         store_crop(item_id, revision, region, result)
         return result
     finally:
@@ -498,6 +523,59 @@ def reviewer_session(request: Request, response: Response):
     return {'ready': True, 'configured': agentstream.configured()}
 
 
+def reserve_agent_call(owner, item_id):
+    if AGENT_GATE.locked():
+        raise HTTPException(503, 'AgentStream 요청을 처리 중입니다. 잠시 후 다시 시도하세요.')
+    now = time.time()
+    with db() as c:
+        c.execute('BEGIN IMMEDIATE')
+        if not c.execute('SELECT 1 FROM items WHERE id=?', (item_id,)).fetchone():
+            raise HTTPException(404, '대상 이미지 없음')
+        total = c.execute('SELECT count(*) FROM draft_attempts WHERE created_at>?', (now-3600,)).fetchone()[0]
+        if total >= 60:
+            raise HTTPException(429, '서버 전체 AgentStream 시간당 호출 한도에 도달했습니다. 잠시 후 다시 시도하세요.')
+        c.execute('INSERT INTO draft_attempts VALUES (?,?)', (owner, now))
+
+
+@app.post('/api/review-questions/{item_id}')
+async def review_questions(item_id: str, request: Request):
+    owner = reviewer_owner(request)
+    with db() as c:
+        item = c.execute('SELECT pred, api_state, origin, full_revision FROM items WHERE id=?', (item_id,)).fetchone()
+        if not item:
+            raise HTTPException(404, '대상 이미지 없음')
+        if item['pred'] != 'normal' or item['api_state'] != 'success' or item['origin'] == 'simulated':
+            raise HTTPException(409, '전체 미검출로 저장된 실제 분석 건만 질문을 생성할 수 있습니다.')
+        crops = [tuple(r) for r in c.execute(
+            "SELECT region, result FROM crop_results WHERE item_id=? AND pred='defect' ORDER BY region", (item_id,))]
+    regions = []
+    for region, raw in crops:
+        detections = [
+            {'detection_id': f'T{region}-D{i}', 'class_name': label}
+            for i, label in enumerate(json.loads(raw).get('labels', [])[:10], 1)
+            if isinstance(label, str) and label.strip()
+        ]
+        if detections:
+            regions.append({'region_id': f'T{region}', 'result': 'detected', 'detections': detections})
+    if not regions:
+        raise HTTPException(409, '질문에 사용할 부분 검출 근거가 없습니다.')
+    if not agentstream.configured(agentstream.QUESTION_BOT):
+        raise HTTPException(503, 'AgentStream 검수 질문 챗봇 설정이 필요합니다.')
+    reserve_agent_call(owner, item_id)
+    try:
+        async with AGENT_GATE:
+            result = await agentstream.review_questions(item_id, regions)
+    except agentstream.AgentStreamError as e:
+        raise HTTPException(e.status, str(e)) from None
+    with db() as c:
+        current = c.execute('SELECT full_revision FROM items WHERE id=?', (item_id,)).fetchone()
+        latest_crops = [tuple(r) for r in c.execute(
+            "SELECT region, result FROM crop_results WHERE item_id=? AND pred='defect' ORDER BY region", (item_id,))]
+    if not current or current['full_revision'] != item['full_revision'] or latest_crops != crops:
+        raise HTTPException(409, '분석 근거가 바뀌었습니다. 현재 결과에서 질문을 다시 생성하세요.')
+    return result
+
+
 class ReviewDraftRequest(BaseModel):
     id: str
     note: str
@@ -512,19 +590,7 @@ async def review_draft(body: ReviewDraftRequest, request: Request):
         raise HTTPException(400, str(e)) from None
     if not agentstream.configured():
         raise HTTPException(503, 'AgentStream API Key 설정이 필요합니다.')
-    if AGENT_GATE.locked():
-        raise HTTPException(503, '메모 정리를 처리 중입니다. 잠시 후 다시 시도하세요.')
-    now = time.time()
-    with db() as c:
-        c.execute('BEGIN IMMEDIATE')
-        if not c.execute('SELECT 1 FROM items WHERE id=?', (body.id,)).fetchone():
-            raise HTTPException(404, '대상 이미지 없음')
-        personal = c.execute('SELECT count(*) FROM draft_attempts WHERE owner=? AND created_at>?',
-                              (owner, now-3600)).fetchone()[0]
-        total = c.execute('SELECT count(*) FROM draft_attempts WHERE created_at>?', (now-3600,)).fetchone()[0]
-        if personal >= 6 or total >= 60:
-            raise HTTPException(429, '메모 정리 호출 한도입니다. 잠시 후 다시 시도하세요.')
-        c.execute('INSERT INTO draft_attempts VALUES (?,?)', (owner, now))
+    reserve_agent_call(owner, body.id)
     try:
         async with AGENT_GATE:
             result = await agentstream.classify_note(body.note)
@@ -568,7 +634,30 @@ def review_item(body: Review, request: Request):
 
 @app.get('/api/evaluate')
 def get_evaluation(k: int = Query(default=10, ge=1, le=200)):
-    return evaluate(rows(), k, load_model(MODEL))
+    model = load_model(MODEL)
+    with db() as c:
+        c.execute('BEGIN')
+        items = [dict(row) for row in c.execute('SELECT * FROM items')]
+        crops = {}
+        for row in c.execute("""SELECT crop_results.item_id, region, crop_results.pred, result
+            FROM crop_results JOIN items ON items.id=crop_results.item_id
+            WHERE split='test' AND origin!='simulated' AND items.pred='normal'
+            AND api_state='success' AND truth IN ('normal','defect')
+            AND crop_results.pred IN ('normal','defect')"""):
+            crops.setdefault(row['item_id'], {})[row['region']] = row
+    complete = {item_id: regions for item_id, regions in crops.items() if set(regions) == {1, 2, 3, 4}}
+    detected = {item_id: sum(row['pred'] == 'defect' for row in regions.values())
+                for item_id, regions in complete.items()}
+    partial = evaluate([row for row in items if row['id'] in complete], k, model, detected_regions=detected)
+    return {**evaluate(items, k, model), 'partial_comparison': {
+        **partial,
+        'eligible_count': sum(row['split'] == 'test' and row['origin'] != 'simulated'
+                              and row['pred'] == 'normal' and row['api_state'] == 'success'
+                              and row['truth'] in ('normal', 'defect') for row in items),
+        'successful_crop_calls': 4 * len(complete),
+        'successful_crop_latency_ms': sum(json.loads(row['result']).get('latency_ms') or 0
+                                          for regions in complete.values() for row in regions.values()),
+    }}
 
 
 @app.get('/api/reveal')

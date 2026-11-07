@@ -88,7 +88,7 @@ def priority(row, model=None):
     return q, '영상품질 규칙(학습 전)'
 
 
-def evaluate(rows, k, model=None, seed=42):
+def evaluate(rows, k, model=None, seed=42, detected_regions=None):
     """Evaluate TEST only and never fill missing truth. Same candidate population and K."""
     cohort = [r for r in rows if r['split'] == 'test' and r['pred'] == 'normal'
               and r['truth'] in ('normal', 'defect') and r.get('origin') != 'simulated']
@@ -100,6 +100,9 @@ def evaluate(rows, k, model=None, seed=42):
         '영상 품질 규칙': sorted(cohort, key=quality_risk, reverse=True),
         'Wind Recheck': sorted(cohort, key=lambda r: priority(r, model)[0], reverse=True)
     }
+    if detected_regions is not None:
+        methods['부분 검출 우선'] = sorted(cohort, key=lambda r: (
+            detected_regions[r['id']], priority(r, model)[0]), reverse=True)
     if cohort and all(r.get('confidence') is not None for r in cohort):
         methods['낮은 신뢰도순'] = sorted(cohort, key=lambda r: confidence_risk(r), reverse=True)
     results = []
