@@ -1,0 +1,11 @@
+{
+  "state": "completed",
+  "data_type": "Synthetic developer note on a real image; not a field observation",
+  "public_ui_checked": true,
+  "real_agentstream_reply_displayed": true,
+  "original_text_preserved": true,
+  "manual_hold_saved": true,
+  "classification_persisted_on_reopen": true,
+  "restored_original_pending_empty_note": true,
+  "limitation": "The synthetic-note preamble was classified as observation. This functional check does not establish semantic classification accuracy or workflow efficiency."
+}

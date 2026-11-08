@@ -1,0 +1,978 @@
+{
+  "selection": "SHA256 filename order, max per location/date group; no truth-based sampling",
+  "data_permission": "organizer approval confirmed by user on 2026-11-07",
+  "source_split": "Validation pilot + original Training imagery restricted to fixed TRAIN groups",
+  "group_counts": {
+    "train": 21,
+    "val": 7,
+    "test": 8
+  },
+  "image_counts": {
+    "train": 84,
+    "test": 15,
+    "val": 13
+  },
+  "group_assignment": {
+    "Gangwon|2025-04-02": "train",
+    "Taebaek|2025-10-30": "train",
+    "Jeongam|2025-11-11": "train",
+    "Taebaekguinemi|2025-11-03": "train",
+    "Sungsan|2022-04-06": "train",
+    "Gangwon|2023-04-17": "train",
+    "Gangwon|2025-04-11": "train",
+    "Gangwon|2024-04-02": "train",
+    "Hankyung|2023-05-16": "train",
+    "Changjuk|2024-05-31": "train",
+    "Gangwon|2025-04-01": "train",
+    "Taebaekguinemi|2025-10-31": "train",
+    "Gangwon|2024-11-20": "train",
+    "Taebaekguinemi|2022-05-23": "train",
+    "Hankyung|2023-05-15": "train",
+    "Sungsan|2024-04-19": "train",
+    "Gangwon|2024-11-22": "train",
+    "Gangwon|2024-11-21": "train",
+    "Gangwon|2023-04-19": "train",
+    "Changjuk|2025-10-29": "train",
+    "Hankyung|2025-04-28": "train",
+    "Pyeongchang|2025-10-22": "val",
+    "Gangwon|2023-11-22": "val",
+    "Gangwon|2024-05-14": "val",
+    "Gangwon|2023-04-21": "val",
+    "Gangwon|2023-11-20": "val",
+    "Gangwon|2024-04-04": "val",
+    "Taebaekguinemi|2022-05-24": "val",
+    "Gangwon|2023-04-24": "test",
+    "Pyeongchang|2025-10-23": "test",
+    "Pyeongchang|2025-11-06": "test",
+    "Gangwon|2023-11-21": "test",
+    "Taebaekguinemi|2022-05-25": "test",
+    "Sungsan|2025-05-13": "test",
+    "Sungsan|2022-04-07": "test",
+    "Taebaek|2024-05-31": "test"
+  },
+  "selection_manifest": [
+    {
+      "image_file": "images/202504_Gangwon_24_C_TrailingEdge_004.jpg",
+      "session": "Gangwon|2025-04-02",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202504_Gangwon_21_C_TrailingEdge_019.jpg",
+      "session": "Gangwon|2025-04-02",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202511_Taebaek_5_C_TrailingEdge_022.jpg",
+      "session": "Taebaek|2025-10-30",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202511_Taebaek_8_C_TrailingEdge_018.jpg",
+      "session": "Taebaek|2025-10-30",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202511_Jeongam_10_C_TrailingEdge_015.jpg",
+      "session": "Jeongam|2025-11-11",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202511_Jeongam_10_C_TrailingEdge_008.jpg",
+      "session": "Jeongam|2025-11-11",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202511_Taebaekguinemi_8_C_TrailingEdge_007.jpg",
+      "session": "Taebaekguinemi|2025-11-03",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202511_Taebaekguinemi_9_C_TrailingEdge_021.jpg",
+      "session": "Taebaekguinemi|2025-11-03",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2022_Sungsan_10_C_TrailingEdge_002.jpg",
+      "session": "Sungsan|2022-04-06",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2022_Sungsan_10_C_TrailingEdge_008.jpg",
+      "session": "Sungsan|2022-04-06",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202304_Gangwon_8_C_TrailingEdge_014.jpg",
+      "session": "Gangwon|2023-04-17",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202304_Gangwon_10_C_TrailingEdge_001.jpg",
+      "session": "Gangwon|2023-04-17",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202504_Gangwon_2_C_TrailingEdge_012.jpg",
+      "session": "Gangwon|2025-04-11",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202504_Gangwon_2_C_TrailingEdge_009.jpg",
+      "session": "Gangwon|2025-04-11",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202404_Gangwon_25_C_TrailingEdge_010.jpg",
+      "session": "Gangwon|2024-04-02",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202404_Gangwon_19_C_TrailingEdge_010.jpg",
+      "session": "Gangwon|2024-04-02",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2023_Hankyung_6_C_TrailingEdge_030.jpg",
+      "session": "Hankyung|2023-05-16",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2023_Hankyung_7_C_TrailingEdge_005.jpg",
+      "session": "Hankyung|2023-05-16",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2024_Changjuk_8_C_TrailingEdge_002.jpg",
+      "session": "Changjuk|2024-05-31",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2024_Changjuk_3_C_TrailingEdge_019.jpg",
+      "session": "Changjuk|2024-05-31",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202504_Gangwon_12_C_TrailingEdge_006.jpg",
+      "session": "Gangwon|2025-04-01",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202504_Gangwon_12_C_TrailingEdge_020.jpg",
+      "session": "Gangwon|2025-04-01",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202511_Taebaekguinemi_3_C_TrailingEdge_020.jpg",
+      "session": "Taebaekguinemi|2025-10-31",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202511_Taebaekguinemi_1_C_TrailingEdge_010.jpg",
+      "session": "Taebaekguinemi|2025-10-31",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202411_Gangwon_28_C_TrailingEdge_009.jpg",
+      "session": "Gangwon|2024-11-20",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202411_Gangwon_26_C_TrailingEdge_018.jpg",
+      "session": "Gangwon|2024-11-20",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2022_Taebaekguinemi_7_C_TrailingEdge_002.jpg",
+      "session": "Taebaekguinemi|2022-05-23",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2022_Taebaekguinemi_6_C_TrailingEdge_030.jpg",
+      "session": "Taebaekguinemi|2022-05-23",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2023_Hankyung_8_C_TrailingEdge_035.jpg",
+      "session": "Hankyung|2023-05-15",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2023_Hankyung_8_C_TrailingEdge_004.jpg",
+      "session": "Hankyung|2023-05-15",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2024_Sungsan_3_C_TrailingEdge_007.jpg",
+      "session": "Sungsan|2024-04-19",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2024_Sungsan_9_C_TrailingEdge_006.jpg",
+      "session": "Sungsan|2024-04-19",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202411_Gangwon_21_C_TrailingEdge_001.jpg",
+      "session": "Gangwon|2024-11-22",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202411_Gangwon_33_C_TrailingEdge_016.jpg",
+      "session": "Gangwon|2024-11-22",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202411_Gangwon_15_C_TrailingEdge_015.jpg",
+      "session": "Gangwon|2024-11-21",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202411_Gangwon_13_C_TrailingEdge_010.jpg",
+      "session": "Gangwon|2024-11-21",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202304_Gangwon_3_C_TrailingEdge_017.jpg",
+      "session": "Gangwon|2023-04-19",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202304_Gangwon_13_C_TrailingEdge_011.jpg",
+      "session": "Gangwon|2023-04-19",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202511_Changjuk_4_C_TrailingEdge_013.jpg",
+      "session": "Changjuk|2025-10-29",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202511_Changjuk_7_C_TrailingEdge_021.jpg",
+      "session": "Changjuk|2025-10-29",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2025_Hankyung_6_C_TrailingEdge_010.jpg",
+      "session": "Hankyung|2025-04-28",
+      "split": "train"
+    },
+    {
+      "image_file": "images/2025_Hankyung_3_C_TrailingEdge_004.jpg",
+      "session": "Hankyung|2025-04-28",
+      "split": "train"
+    },
+    {
+      "image_file": "images/202511_Pyeongchang_13_C_TrailingEdge_032.jpg",
+      "session": "Pyeongchang|2025-10-22",
+      "split": "val"
+    },
+    {
+      "image_file": "images/202511_Pyeongchang_13_C_TrailingEdge_011.jpg",
+      "session": "Pyeongchang|2025-10-22",
+      "split": "val"
+    },
+    {
+      "image_file": "images/202311_Gangwon_31_C_TrailingEdge_018.jpg",
+      "session": "Gangwon|2023-11-22",
+      "split": "val"
+    },
+    {
+      "image_file": "images/202404_Gangwon_16_C_TrailingEdge_009.jpg",
+      "session": "Gangwon|2024-05-14",
+      "split": "val"
+    },
+    {
+      "image_file": "images/202404_Gangwon_16_C_TrailingEdge_024.jpg",
+      "session": "Gangwon|2024-05-14",
+      "split": "val"
+    },
+    {
+      "image_file": "images/202304_Gangwon_32_C_TrailingEdge_010.jpg",
+      "session": "Gangwon|2023-04-21",
+      "split": "val"
+    },
+    {
+      "image_file": "images/202304_Gangwon_29_C_TrailingEdge_004.jpg",
+      "session": "Gangwon|2023-04-21",
+      "split": "val"
+    },
+    {
+      "image_file": "images/202311_Gangwon_3_C_TrailingEdge_007.jpg",
+      "session": "Gangwon|2023-11-20",
+      "split": "val"
+    },
+    {
+      "image_file": "images/202311_Gangwon_28_C_TrailingEdge_016.jpg",
+      "session": "Gangwon|2023-11-20",
+      "split": "val"
+    },
+    {
+      "image_file": "images/202404_Gangwon_8_C_TrailingEdge_009.jpg",
+      "session": "Gangwon|2024-04-04",
+      "split": "val"
+    },
+    {
+      "image_file": "images/202404_Gangwon_33_C_TrailingEdge_003.jpg",
+      "session": "Gangwon|2024-04-04",
+      "split": "val"
+    },
+    {
+      "image_file": "images/2022_Taebaekguinemi_4_C_TrailingEdge_041.jpg",
+      "session": "Taebaekguinemi|2022-05-24",
+      "split": "val"
+    },
+    {
+      "image_file": "images/2022_Taebaekguinemi_4_C_TrailingEdge_019.jpg",
+      "session": "Taebaekguinemi|2022-05-24",
+      "split": "val"
+    },
+    {
+      "image_file": "images/202304_Gangwon_31_C_TrailingEdge_014.jpg",
+      "session": "Gangwon|2023-04-24",
+      "split": "test"
+    },
+    {
+      "image_file": "images/202304_Gangwon_49_C_TrailingEdge_008.jpg",
+      "session": "Gangwon|2023-04-24",
+      "split": "test"
+    },
+    {
+      "image_file": "images/202511_Pyeongchang_7_C_TrailingEdge_018.jpg",
+      "session": "Pyeongchang|2025-10-23",
+      "split": "test"
+    },
+    {
+      "image_file": "images/202511_Pyeongchang_12_C_TrailingEdge_013.jpg",
+      "session": "Pyeongchang|2025-10-23",
+      "split": "test"
+    },
+    {
+      "image_file": "images/202511_Pyeongchang_5_C_TrailingEdge_013.jpg",
+      "session": "Pyeongchang|2025-11-06",
+      "split": "test"
+    },
+    {
+      "image_file": "images/202511_Pyeongchang_1_C_TrailingEdge_024.jpg",
+      "session": "Pyeongchang|2025-11-06",
+      "split": "test"
+    },
+    {
+      "image_file": "images/202311_Gangwon_43_C_TrailingEdge_003.jpg",
+      "session": "Gangwon|2023-11-21",
+      "split": "test"
+    },
+    {
+      "image_file": "images/202311_Gangwon_37_C_TrailingEdge_006.jpg",
+      "session": "Gangwon|2023-11-21",
+      "split": "test"
+    },
+    {
+      "image_file": "images/2022_Taebaekguinemi_10_C_TrailingEdge_025.jpg",
+      "session": "Taebaekguinemi|2022-05-25",
+      "split": "test"
+    },
+    {
+      "image_file": "images/2022_Taebaekguinemi_12_C_TrailingEdge_015.jpg",
+      "session": "Taebaekguinemi|2022-05-25",
+      "split": "test"
+    },
+    {
+      "image_file": "images/2025_Sungsan_6_C_TrailingEdge_006.jpg",
+      "session": "Sungsan|2025-05-13",
+      "split": "test"
+    },
+    {
+      "image_file": "images/2022_Sungsan_6_C_TrailingEdge_008.jpg",
+      "session": "Sungsan|2022-04-07",
+      "split": "test"
+    },
+    {
+      "image_file": "images/2022_Sungsan_6_C_TrailingEdge_053.jpg",
+      "session": "Sungsan|2022-04-07",
+      "split": "test"
+    },
+    {
+      "image_file": "images/2024_Taebaek_5_C_TrailingEdge_016.jpg",
+      "session": "Taebaek|2024-05-31",
+      "split": "test"
+    },
+    {
+      "image_file": "images/2024_Taebaek_1_C_TrailingEdge_018.jpg",
+      "session": "Taebaek|2024-05-31",
+      "split": "test"
+    },
+    {
+      "image_file": "Training/202511_Changjuk_3_C_TrailingEdge_004.jpg",
+      "session": "Changjuk|2025-10-29",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202511_Taebaekguinemi_9_C_TrailingEdge_005.jpg",
+      "session": "Taebaekguinemi|2025-11-03",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202511_Taebaek_8_C_TrailingEdge_013.jpg",
+      "session": "Taebaek|2025-10-30",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202511_Taebaek_4_C_TrailingEdge_002.jpg",
+      "session": "Taebaek|2025-10-30",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202411_Gangwon_12_C_TrailingEdge_020.jpg",
+      "session": "Gangwon|2024-11-20",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202411_Gangwon_10_C_TrailingEdge_009.jpg",
+      "session": "Gangwon|2024-11-21",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202411_Gangwon_4_C_TrailingEdge_002.jpg",
+      "session": "Gangwon|2024-11-20",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202304_Gangwon_10_C_TrailingEdge_016.jpg",
+      "session": "Gangwon|2023-04-17",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2022_Sungsan_1_C_TrailingEdge_044.jpg",
+      "session": "Sungsan|2022-04-06",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202411_Gangwon_1_C_TrailingEdge_018.jpg",
+      "session": "Gangwon|2024-11-21",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202404_Gangwon_15_C_TrailingEdge_016.jpg",
+      "session": "Gangwon|2024-04-02",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202504_Gangwon_3_C_TrailingEdge_009.jpg",
+      "session": "Gangwon|2025-04-01",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202304_Gangwon_17_C_TrailingEdge_017.jpg",
+      "session": "Gangwon|2023-04-19",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2024_Changjuk_7_C_TrailingEdge_022.jpg",
+      "session": "Changjuk|2024-05-31",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2022_Sungsan_7_C_TrailingEdge_024.jpg",
+      "session": "Sungsan|2022-04-06",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202304_Gangwon_2_C_TrailingEdge_016.jpg",
+      "session": "Gangwon|2023-04-19",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202404_Gangwon_29_C_TrailingEdge_008.jpg",
+      "session": "Gangwon|2024-04-02",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2024_Changjuk_2_C_TrailingEdge_020.jpg",
+      "session": "Changjuk|2024-05-31",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202504_Gangwon_5_C_TrailingEdge_006.jpg",
+      "session": "Gangwon|2025-04-01",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202304_Gangwon_8_C_TrailingEdge_004.jpg",
+      "session": "Gangwon|2023-04-17",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202511_Jeongam_5_C_TrailingEdge_006.jpg",
+      "session": "Jeongam|2025-11-11",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202504_Gangwon_22_C_TrailingEdge_023.jpg",
+      "session": "Gangwon|2025-04-02",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202511_Taebaekguinemi_11_C_TrailingEdge_009.jpg",
+      "session": "Taebaekguinemi|2025-11-03",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202504_Gangwon_22_C_TrailingEdge_026.jpg",
+      "session": "Gangwon|2025-04-02",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202511_Changjuk_7_C_TrailingEdge_008.jpg",
+      "session": "Changjuk|2025-10-29",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2022_Taebaekguinemi_6_C_TrailingEdge_019.jpg",
+      "session": "Taebaekguinemi|2022-05-23",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202511_Jeongam_9_C_TrailingEdge_021.jpg",
+      "session": "Jeongam|2025-11-11",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2023_Hankyung_8_C_TrailingEdge_024.jpg",
+      "session": "Hankyung|2023-05-15",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2023_Hankyung_7_C_TrailingEdge_016.jpg",
+      "session": "Hankyung|2023-05-16",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202411_Gangwon_20_C_TrailingEdge_010.jpg",
+      "session": "Gangwon|2024-11-22",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2022_Taebaekguinemi_6_C_TrailingEdge_017.jpg",
+      "session": "Taebaekguinemi|2022-05-23",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2024_Sungsan_5_C_TrailingEdge_001.jpg",
+      "session": "Sungsan|2024-04-19",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202511_Taebaekguinemi_2_C_TrailingEdge_002.jpg",
+      "session": "Taebaekguinemi|2025-10-31",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202511_Taebaekguinemi_3_C_TrailingEdge_015.jpg",
+      "session": "Taebaekguinemi|2025-10-31",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202411_Gangwon_18_C_TrailingEdge_013.jpg",
+      "session": "Gangwon|2024-11-22",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2023_Hankyung_7_C_TrailingEdge_027.jpg",
+      "session": "Hankyung|2023-05-16",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2025_Hankyung_6_C_TrailingEdge_016.jpg",
+      "session": "Hankyung|2025-04-28",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2025_Hankyung_3_C_TrailingEdge_007.jpg",
+      "session": "Hankyung|2025-04-28",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2024_Sungsan_7_C_TrailingEdge_008.jpg",
+      "session": "Sungsan|2024-04-19",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/2023_Hankyung_9_C_TrailingEdge_027.jpg",
+      "session": "Hankyung|2023-05-15",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202504_Gangwon_2_C_TrailingEdge_008.jpg",
+      "session": "Gangwon|2025-04-11",
+      "split": "train"
+    },
+    {
+      "image_file": "Training/202504_Gangwon_2_C_TrailingEdge_015.jpg",
+      "session": "Gangwon|2025-04-11",
+      "split": "train"
+    }
+  ],
+  "training": {
+    "ok": false,
+    "reason": "학습용 실제 정상·미검출 표본이 최소 12건, 누락 결함·정상 각각 3건 이상 필요합니다."
+  },
+  "limitations": [
+    "Small exploratory pilot; no generalization claim.",
+    "Overlap with base model training data is unknown.",
+    "Location/date separation does not prove equipment independence.",
+    "The original 4 test candidates were inspected before filling the pre-existing training quota. Hyperparameters, features and test split were unchanged. This is an exploratory pilot, not a fresh confirmatory test."
+  ],
+  "state": "completed",
+  "generated_at": "2026-11-07T15:49:12.794380+09:00",
+  "selected_count": 112,
+  "registered_count": 114,
+  "excluded_from_experiment_count": 2,
+  "api_success_count": 112,
+  "api_error_count": 0,
+  "unknown_count": 0,
+  "model_input": "App JPEG RGB normalization, quality=90, full image dimensions",
+  "confidence_feature": "Not provided; constant 0.5 imputation cannot distinguish images",
+  "validation_tuning_performed": false,
+  "capture_meaning": "Ground-truth defects included in selected K; human discovery rate is not measured",
+  "comparisons_excluded": {
+    "low_confidence": "Actual API does not return confidence"
+  },
+  "learned_model_sha256": null,
+  "base_pilot_count": 70,
+  "extra_training_count": 42,
+  "cross_split_exact_image_duplicates": 0,
+  "training_expansion": {
+    "selection": "Two filename-hash candidates per original TRAIN group, then filename-hash order; stop on training minimum quota. Training selection is adaptive, not a prevalence estimate.",
+    "stopping_reason": "candidate budget exhausted",
+    "training_candidates": {
+      "total": 17,
+      "missed": 2,
+      "normal": 15
+    }
+  },
+  "predictions": {
+    "defect": 87,
+    "normal": 25
+  },
+  "per_split": {
+    "train": {
+      "image_count": 84,
+      "truth_defect": 59,
+      "truth_normal": 25,
+      "model_normal": 17,
+      "model_defect": 67,
+      "missed_defect": 2,
+      "false_positive": 10,
+      "api_errors": 0
+    },
+    "val": {
+      "image_count": 13,
+      "truth_defect": 9,
+      "truth_normal": 4,
+      "model_normal": 4,
+      "model_defect": 9,
+      "missed_defect": 1,
+      "false_positive": 1,
+      "api_errors": 0
+    },
+    "test": {
+      "image_count": 15,
+      "truth_defect": 11,
+      "truth_normal": 4,
+      "model_normal": 4,
+      "model_defect": 11,
+      "missed_defect": 2,
+      "false_positive": 2,
+      "api_errors": 0
+    }
+  },
+  "evaluations": [
+    {
+      "test_count": 4,
+      "missed_defect_count": 2,
+      "k": 1,
+      "methods": [
+        {
+          "method": "무작위",
+          "selected": 1,
+          "found": 1,
+          "capture_at_k": 0.5,
+          "precision_at_k": 1.0,
+          "remaining": 1,
+          "ids": [
+            "2cdb62d3f3f040e68aec9ca385c6512f"
+          ]
+        },
+        {
+          "method": "영상 품질 규칙",
+          "selected": 1,
+          "found": 0,
+          "capture_at_k": 0.0,
+          "precision_at_k": 0.0,
+          "remaining": 2,
+          "ids": [
+            "5df2759f6720468fa3b553f19621b9ad"
+          ]
+        },
+        {
+          "method": "Wind Recheck",
+          "selected": 1,
+          "found": 0,
+          "capture_at_k": 0.0,
+          "precision_at_k": 0.0,
+          "remaining": 2,
+          "ids": [
+            "5df2759f6720468fa3b553f19621b9ad"
+          ]
+        }
+      ],
+      "trained": false,
+      "random_expectation": {
+        "capture_at_k": 0.25,
+        "precision_at_k": 0.5,
+        "remaining": 1.5,
+        "note": "균등 무작위 비복원 추출의 이론적 기대값. methods의 무작위는 고정 seed 1회 결과."
+      },
+      "warning": "제공 모델의 원래 학습 데이터 중복은 별도 확인 필요. 실제 현장 일반화 성능으로 해석하지 마세요.",
+      "requested_k": 1
+    },
+    {
+      "test_count": 4,
+      "missed_defect_count": 2,
+      "k": 3,
+      "methods": [
+        {
+          "method": "무작위",
+          "selected": 3,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.6667,
+          "remaining": 0,
+          "ids": [
+            "2cdb62d3f3f040e68aec9ca385c6512f",
+            "469f8a8fc8bb4cd3a80d41438e1a5cf1",
+            "5df2759f6720468fa3b553f19621b9ad"
+          ]
+        },
+        {
+          "method": "영상 품질 규칙",
+          "selected": 3,
+          "found": 1,
+          "capture_at_k": 0.5,
+          "precision_at_k": 0.3333,
+          "remaining": 1,
+          "ids": [
+            "5df2759f6720468fa3b553f19621b9ad",
+            "18b0835947a444dfa7642a37639986d1",
+            "2cdb62d3f3f040e68aec9ca385c6512f"
+          ]
+        },
+        {
+          "method": "Wind Recheck",
+          "selected": 3,
+          "found": 1,
+          "capture_at_k": 0.5,
+          "precision_at_k": 0.3333,
+          "remaining": 1,
+          "ids": [
+            "5df2759f6720468fa3b553f19621b9ad",
+            "18b0835947a444dfa7642a37639986d1",
+            "2cdb62d3f3f040e68aec9ca385c6512f"
+          ]
+        }
+      ],
+      "trained": false,
+      "random_expectation": {
+        "capture_at_k": 0.75,
+        "precision_at_k": 0.5,
+        "remaining": 0.5,
+        "note": "균등 무작위 비복원 추출의 이론적 기대값. methods의 무작위는 고정 seed 1회 결과."
+      },
+      "warning": "제공 모델의 원래 학습 데이터 중복은 별도 확인 필요. 실제 현장 일반화 성능으로 해석하지 마세요.",
+      "requested_k": 3
+    },
+    {
+      "test_count": 4,
+      "missed_defect_count": 2,
+      "k": 4,
+      "methods": [
+        {
+          "method": "무작위",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0,
+          "ids": [
+            "2cdb62d3f3f040e68aec9ca385c6512f",
+            "469f8a8fc8bb4cd3a80d41438e1a5cf1",
+            "5df2759f6720468fa3b553f19621b9ad",
+            "18b0835947a444dfa7642a37639986d1"
+          ]
+        },
+        {
+          "method": "영상 품질 규칙",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0,
+          "ids": [
+            "5df2759f6720468fa3b553f19621b9ad",
+            "18b0835947a444dfa7642a37639986d1",
+            "2cdb62d3f3f040e68aec9ca385c6512f",
+            "469f8a8fc8bb4cd3a80d41438e1a5cf1"
+          ]
+        },
+        {
+          "method": "Wind Recheck",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0,
+          "ids": [
+            "5df2759f6720468fa3b553f19621b9ad",
+            "18b0835947a444dfa7642a37639986d1",
+            "2cdb62d3f3f040e68aec9ca385c6512f",
+            "469f8a8fc8bb4cd3a80d41438e1a5cf1"
+          ]
+        }
+      ],
+      "trained": false,
+      "random_expectation": {
+        "capture_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "remaining": 0.0,
+        "note": "균등 무작위 비복원 추출의 이론적 기대값. methods의 무작위는 고정 seed 1회 결과."
+      },
+      "warning": "제공 모델의 원래 학습 데이터 중복은 별도 확인 필요. 실제 현장 일반화 성능으로 해석하지 마세요.",
+      "requested_k": 5
+    },
+    {
+      "test_count": 4,
+      "missed_defect_count": 2,
+      "k": 4,
+      "methods": [
+        {
+          "method": "무작위",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0,
+          "ids": [
+            "2cdb62d3f3f040e68aec9ca385c6512f",
+            "469f8a8fc8bb4cd3a80d41438e1a5cf1",
+            "5df2759f6720468fa3b553f19621b9ad",
+            "18b0835947a444dfa7642a37639986d1"
+          ]
+        },
+        {
+          "method": "영상 품질 규칙",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0,
+          "ids": [
+            "5df2759f6720468fa3b553f19621b9ad",
+            "18b0835947a444dfa7642a37639986d1",
+            "2cdb62d3f3f040e68aec9ca385c6512f",
+            "469f8a8fc8bb4cd3a80d41438e1a5cf1"
+          ]
+        },
+        {
+          "method": "Wind Recheck",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0,
+          "ids": [
+            "5df2759f6720468fa3b553f19621b9ad",
+            "18b0835947a444dfa7642a37639986d1",
+            "2cdb62d3f3f040e68aec9ca385c6512f",
+            "469f8a8fc8bb4cd3a80d41438e1a5cf1"
+          ]
+        }
+      ],
+      "trained": false,
+      "random_expectation": {
+        "capture_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "remaining": 0.0,
+        "note": "균등 무작위 비복원 추출의 이론적 기대값. methods의 무작위는 고정 seed 1회 결과."
+      },
+      "warning": "제공 모델의 원래 학습 데이터 중복은 별도 확인 필요. 실제 현장 일반화 성능으로 해석하지 마세요.",
+      "requested_k": 10
+    },
+    {
+      "test_count": 4,
+      "missed_defect_count": 2,
+      "k": 4,
+      "methods": [
+        {
+          "method": "무작위",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0,
+          "ids": [
+            "2cdb62d3f3f040e68aec9ca385c6512f",
+            "469f8a8fc8bb4cd3a80d41438e1a5cf1",
+            "5df2759f6720468fa3b553f19621b9ad",
+            "18b0835947a444dfa7642a37639986d1"
+          ]
+        },
+        {
+          "method": "영상 품질 규칙",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0,
+          "ids": [
+            "5df2759f6720468fa3b553f19621b9ad",
+            "18b0835947a444dfa7642a37639986d1",
+            "2cdb62d3f3f040e68aec9ca385c6512f",
+            "469f8a8fc8bb4cd3a80d41438e1a5cf1"
+          ]
+        },
+        {
+          "method": "Wind Recheck",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0,
+          "ids": [
+            "5df2759f6720468fa3b553f19621b9ad",
+            "18b0835947a444dfa7642a37639986d1",
+            "2cdb62d3f3f040e68aec9ca385c6512f",
+            "469f8a8fc8bb4cd3a80d41438e1a5cf1"
+          ]
+        }
+      ],
+      "trained": false,
+      "random_expectation": {
+        "capture_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "remaining": 0.0,
+        "note": "균등 무작위 비복원 추출의 이론적 기대값. methods의 무작위는 고정 seed 1회 결과."
+      },
+      "warning": "제공 모델의 원래 학습 데이터 중복은 별도 확인 필요. 실제 현장 일반화 성능으로 해석하지 마세요.",
+      "requested_k": 20
+    }
+  ],
+  "source_sha256": {
+    "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "app/aistream.py": "cd2449f9ebc0688f6597c1abfa693360b331b7dc2caa18ff734d185d8554a270",
+    "app/engine.py": "d01350eec439b5f3a427951e800d827bd9ccec4362917b2c6962cc0d3472ac3b",
+    "app/main.py": "ed8c771c40ca92d48151f17fd5b9c052757a31f6b575b6e16e09a3ecce147625",
+    "app/static/app.js": "36601fa016838694e64cd66ee446d2019a9e25366842a21b589b77539f3c6a42",
+    "app/static/styles.css": "a26840b9aa8ce8a153c8df2bd3e8aaa6bb551dadfebc9876eeb5df6456e2ba02",
+    "app/static/index.html": "63cb338c194978cb3e3ddf30a3f5f9bd7f61fb74df6f2998fc76ce4f9b49e8d9"
+  }
+}
