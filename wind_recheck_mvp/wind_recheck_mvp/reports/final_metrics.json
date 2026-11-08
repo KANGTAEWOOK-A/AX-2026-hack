@@ -1,0 +1,300 @@
+{
+  "selection": "SHA256 filename order, max per location/date group; no truth-based sampling",
+  "data_permission": "organizer approval confirmed by user on 2026-11-07",
+  "source_split": "Validation pilot + original Training imagery restricted to fixed TRAIN groups",
+  "group_counts": {
+    "train": 21,
+    "val": 7,
+    "test": 8
+  },
+  "image_counts": {
+    "train": 84,
+    "test": 15,
+    "val": 13
+  },
+  "training": {
+    "ok": false,
+    "reason": "학습용 실제 정상·미검출 표본이 최소 12건, 누락 결함·정상 각각 3건 이상 필요합니다."
+  },
+  "limitations": [
+    "Small exploratory pilot; no generalization claim.",
+    "Overlap with base model training data is unknown.",
+    "Location/date separation does not prove equipment independence.",
+    "The original 4 test candidates were inspected before filling the pre-existing training quota. Hyperparameters, features and test split were unchanged. This is an exploratory pilot, not a fresh confirmatory test."
+  ],
+  "state": "completed",
+  "generated_at": "2026-11-07T15:49:12.794380+09:00",
+  "selected_count": 112,
+  "registered_count": 114,
+  "excluded_from_experiment_count": 2,
+  "api_success_count": 112,
+  "api_error_count": 0,
+  "unknown_count": 0,
+  "model_input": "App JPEG RGB normalization, quality=90, full image dimensions",
+  "confidence_feature": "Not provided; constant 0.5 imputation cannot distinguish images",
+  "validation_tuning_performed": false,
+  "capture_meaning": "Ground-truth defects included in selected K; human discovery rate is not measured",
+  "comparisons_excluded": {
+    "low_confidence": "Actual API does not return confidence"
+  },
+  "learned_model_sha256": null,
+  "base_pilot_count": 70,
+  "extra_training_count": 42,
+  "cross_split_exact_image_duplicates": 0,
+  "training_expansion": {
+    "selection": "Two filename-hash candidates per original TRAIN group, then filename-hash order; stop on training minimum quota. Training selection is adaptive, not a prevalence estimate.",
+    "stopping_reason": "candidate budget exhausted",
+    "training_candidates": {
+      "total": 17,
+      "missed": 2,
+      "normal": 15
+    }
+  },
+  "predictions": {
+    "defect": 87,
+    "normal": 25
+  },
+  "per_split": {
+    "train": {
+      "image_count": 84,
+      "truth_defect": 59,
+      "truth_normal": 25,
+      "model_normal": 17,
+      "model_defect": 67,
+      "missed_defect": 2,
+      "false_positive": 10,
+      "api_errors": 0
+    },
+    "val": {
+      "image_count": 13,
+      "truth_defect": 9,
+      "truth_normal": 4,
+      "model_normal": 4,
+      "model_defect": 9,
+      "missed_defect": 1,
+      "false_positive": 1,
+      "api_errors": 0
+    },
+    "test": {
+      "image_count": 15,
+      "truth_defect": 11,
+      "truth_normal": 4,
+      "model_normal": 4,
+      "model_defect": 11,
+      "missed_defect": 2,
+      "false_positive": 2,
+      "api_errors": 0
+    }
+  },
+  "evaluations": [
+    {
+      "test_count": 4,
+      "missed_defect_count": 2,
+      "k": 1,
+      "methods": [
+        {
+          "method": "무작위",
+          "selected": 1,
+          "found": 1,
+          "capture_at_k": 0.5,
+          "precision_at_k": 1.0,
+          "remaining": 1
+        },
+        {
+          "method": "영상 품질 규칙",
+          "selected": 1,
+          "found": 0,
+          "capture_at_k": 0.0,
+          "precision_at_k": 0.0,
+          "remaining": 2
+        },
+        {
+          "method": "Wind Recheck",
+          "selected": 1,
+          "found": 0,
+          "capture_at_k": 0.0,
+          "precision_at_k": 0.0,
+          "remaining": 2
+        }
+      ],
+      "trained": false,
+      "random_expectation": {
+        "capture_at_k": 0.25,
+        "precision_at_k": 0.5,
+        "remaining": 1.5,
+        "note": "균등 무작위 비복원 추출의 이론적 기대값. methods의 무작위는 고정 seed 1회 결과."
+      },
+      "warning": "제공 모델의 원래 학습 데이터 중복은 별도 확인 필요. 실제 현장 일반화 성능으로 해석하지 마세요.",
+      "requested_k": 1
+    },
+    {
+      "test_count": 4,
+      "missed_defect_count": 2,
+      "k": 3,
+      "methods": [
+        {
+          "method": "무작위",
+          "selected": 3,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.6667,
+          "remaining": 0
+        },
+        {
+          "method": "영상 품질 규칙",
+          "selected": 3,
+          "found": 1,
+          "capture_at_k": 0.5,
+          "precision_at_k": 0.3333,
+          "remaining": 1
+        },
+        {
+          "method": "Wind Recheck",
+          "selected": 3,
+          "found": 1,
+          "capture_at_k": 0.5,
+          "precision_at_k": 0.3333,
+          "remaining": 1
+        }
+      ],
+      "trained": false,
+      "random_expectation": {
+        "capture_at_k": 0.75,
+        "precision_at_k": 0.5,
+        "remaining": 0.5,
+        "note": "균등 무작위 비복원 추출의 이론적 기대값. methods의 무작위는 고정 seed 1회 결과."
+      },
+      "warning": "제공 모델의 원래 학습 데이터 중복은 별도 확인 필요. 실제 현장 일반화 성능으로 해석하지 마세요.",
+      "requested_k": 3
+    },
+    {
+      "test_count": 4,
+      "missed_defect_count": 2,
+      "k": 4,
+      "methods": [
+        {
+          "method": "무작위",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0
+        },
+        {
+          "method": "영상 품질 규칙",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0
+        },
+        {
+          "method": "Wind Recheck",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0
+        }
+      ],
+      "trained": false,
+      "random_expectation": {
+        "capture_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "remaining": 0.0,
+        "note": "균등 무작위 비복원 추출의 이론적 기대값. methods의 무작위는 고정 seed 1회 결과."
+      },
+      "warning": "제공 모델의 원래 학습 데이터 중복은 별도 확인 필요. 실제 현장 일반화 성능으로 해석하지 마세요.",
+      "requested_k": 5
+    },
+    {
+      "test_count": 4,
+      "missed_defect_count": 2,
+      "k": 4,
+      "methods": [
+        {
+          "method": "무작위",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0
+        },
+        {
+          "method": "영상 품질 규칙",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0
+        },
+        {
+          "method": "Wind Recheck",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0
+        }
+      ],
+      "trained": false,
+      "random_expectation": {
+        "capture_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "remaining": 0.0,
+        "note": "균등 무작위 비복원 추출의 이론적 기대값. methods의 무작위는 고정 seed 1회 결과."
+      },
+      "warning": "제공 모델의 원래 학습 데이터 중복은 별도 확인 필요. 실제 현장 일반화 성능으로 해석하지 마세요.",
+      "requested_k": 10
+    },
+    {
+      "test_count": 4,
+      "missed_defect_count": 2,
+      "k": 4,
+      "methods": [
+        {
+          "method": "무작위",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0
+        },
+        {
+          "method": "영상 품질 규칙",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0
+        },
+        {
+          "method": "Wind Recheck",
+          "selected": 4,
+          "found": 2,
+          "capture_at_k": 1.0,
+          "precision_at_k": 0.5,
+          "remaining": 0
+        }
+      ],
+      "trained": false,
+      "random_expectation": {
+        "capture_at_k": 1.0,
+        "precision_at_k": 0.5,
+        "remaining": 0.0,
+        "note": "균등 무작위 비복원 추출의 이론적 기대값. methods의 무작위는 고정 seed 1회 결과."
+      },
+      "warning": "제공 모델의 원래 학습 데이터 중복은 별도 확인 필요. 실제 현장 일반화 성능으로 해석하지 마세요.",
+      "requested_k": 20
+    }
+  ],
+  "source_sha256": {
+    "app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "app/aistream.py": "cd2449f9ebc0688f6597c1abfa693360b331b7dc2caa18ff734d185d8554a270",
+    "app/engine.py": "d01350eec439b5f3a427951e800d827bd9ccec4362917b2c6962cc0d3472ac3b",
+    "app/main.py": "ed8c771c40ca92d48151f17fd5b9c052757a31f6b575b6e16e09a3ecce147625",
+    "app/static/app.js": "36601fa016838694e64cd66ee446d2019a9e25366842a21b589b77539f3c6a42",
+    "app/static/styles.css": "a26840b9aa8ce8a153c8df2bd3e8aaa6bb551dadfebc9876eeb5df6456e2ba02",
+    "app/static/index.html": "63cb338c194978cb3e3ddf30a3f5f9bd7f61fb74df6f2998fc76ce4f9b49e8d9"
+  }
+}
